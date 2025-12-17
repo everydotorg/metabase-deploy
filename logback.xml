@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Console appender for standard output -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- NewRelic Logs appender -->
+    <appender name="NEWRELIC" class="com.newrelic.logging.logback.NewRelicAppender">
+        <licenseKey>${NEW_RELIC_LICENSE_KEY}</licenseKey>
+        <appName>metabase</appName>
+    </appender>
+
+    <!-- Async wrapper for NewRelic to avoid blocking -->
+    <appender name="ASYNC_NEWRELIC" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>1000</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="NEWRELIC" />
+    </appender>
+
+    <!-- Root logger configuration -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="ASYNC_NEWRELIC" />
+    </root>
+
+    <!-- Reduce noise from specific loggers if needed -->
+    <logger name="org.eclipse.jetty" level="WARN" />
+    <logger name="org.apache.http" level="WARN" />
+</configuration>

@@ -91,4 +91,28 @@ if [ "$JAVA_TIMEZONE"]; then
     JAVA_OPTS+=" -Duser.timezone=$JAVA_TIMEZONE"
 fi
 
+# Configure NewRelic Logback appender
+if [ -n "$NEW_RELIC_LICENSE_KEY" ]; then
+    echo "  -> NewRelic logging detected"
+
+    # Create lib directory if it doesn't exist
+    mkdir -p lib
+
+    # Download NewRelic Logback appender if not present
+    NEWRELIC_LOGBACK_VERSION="2.4"
+    NEWRELIC_LOGBACK_JAR="lib/newrelic-logback-${NEWRELIC_LOGBACK_VERSION}.jar"
+
+    if [ ! -f "$NEWRELIC_LOGBACK_JAR" ]; then
+        echo "  -> Downloading NewRelic Logback appender..."
+        curl -L -o "$NEWRELIC_LOGBACK_JAR" \
+            "https://repo1.maven.org/maven2/com/newrelic/logging/newrelic-logback/${NEWRELIC_LOGBACK_VERSION}/newrelic-logback-${NEWRELIC_LOGBACK_VERSION}.jar"
+    fi
+
+    # Add NewRelic JAR to boot classpath (allows use with -jar)
+    JAVA_OPTS+=" -Xbootclasspath/a:$NEWRELIC_LOGBACK_JAR"
+
+    # Configure logback
+    JAVA_OPTS+=" -Dlogback.configurationFile=logback.xml"
+fi
+
 exec java $JAVA_OPTS -jar ./target/uberjar/metabase.jar
